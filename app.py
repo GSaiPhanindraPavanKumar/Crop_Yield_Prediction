@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template
 import pandas as pd
 import joblib
+import os
 
 app = Flask(__name__)
 
@@ -14,7 +15,6 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Get user input from the form
     crop_year = int(request.form['crop_year'])
     area = float(request.form['area'])
     production = float(request.form['production'])
@@ -25,7 +25,6 @@ def predict():
     season = request.form['season']
     state = request.form['state']
 
-    # Create a DataFrame for the user input
     user_data = pd.DataFrame({
         'Crop_Year': [crop_year],
         'Area': [area],
@@ -38,16 +37,12 @@ def predict():
         'State': [state]
     })
 
-    # Convert categorical variables to numerical using one-hot encoding
     user_data_encoded = pd.get_dummies(user_data, columns=['Crop', 'Season', 'State'])
-
-    # Ensure the user input DataFrame has the same columns as the training DataFrame
     user_data_encoded = user_data_encoded.reindex(columns=model_columns, fill_value=0)
-
-    # Make predictions for the user input
     predicted_yield = model.predict(user_data_encoded)[0]
 
     return render_template('result.html', prediction=predicted_yield)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
