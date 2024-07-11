@@ -9,9 +9,15 @@ app = Flask(__name__)
 model = joblib.load('crop_yield_model.pkl')
 model_columns = joblib.load('model_columns.pkl')
 
+# Load the data to extract unique values for dropdowns
+df = pd.read_csv('crop_yield.csv')  # Adjust the path to your CSV file
+unique_states = df['State'].unique()
+unique_seasons = df['Season'].unique()
+unique_crops = df['Crop'].unique()
+
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html', states=unique_states, seasons=unique_seasons, crops=unique_crops)
 
 @app.route('/predict', methods=['POST'])
 def predict():
